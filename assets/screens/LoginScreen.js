@@ -39,7 +39,7 @@ export default class Login extends Component {
         if (this.state.username.length > 0 && this.state.username.length > 0) {
             const {username, password} = this.state;
             console.log(`username: ${username}  password:${password}`)
-            axios.get(`http://192.168.1.16:3000/login/${username}/${password}`)
+            axios.get(`http://localhost:3000/login/${username}/${password}`)
             .then(response => {
                 console.log(response.status);
                 if (response.status == 200) {

@@ -33,7 +33,7 @@ export default class Register extends Component {
             const {username,email,phone,password}  = this.state;
             let registerUser = {username,email,phone, password};
             console.log(registerUser);
-            axios.post('http://192.168.1.16:3000/register', 
+            axios.post('http://localhost:3000/register', 
                 registerUser
             ).then(response => {
                 console.log(response.data)
