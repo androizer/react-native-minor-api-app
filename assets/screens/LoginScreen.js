@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import {StackActions, NavigationActions} from 'react-navigation';
+import {Form, Item, Input, Label} from 'native-base';
+import ipPort from '../components/ipConfig';
+
 import {
     View,
     StyleSheet,
@@ -8,7 +11,8 @@ import {
     Button,
     TouchableOpacity,
     Image,
-    Alert
+    Alert,
+    AsyncStorage
 } from 'react-native';
 
 import {Header, Left, Icon, Container, Content} from 'native-base';
@@ -19,7 +23,8 @@ export default class Login extends Component {
         super(props);
         this.state = {
             username: '',
-            password: ''
+            password: '',
+            userID: ''
         };
     }
 
@@ -28,33 +33,75 @@ export default class Login extends Component {
         const resetAction = StackActions.reset({
             index: 0,
             actions: [
-              NavigationActions.navigate({ routeName: 'UserProfile' })
+              NavigationActions.navigate({ routeName: 'UserProfile', params: this.state })
             ],
             key: null
           });
         return this.props.navigation.dispatch(resetAction);
     }
 
-    onLogin = () => {
-        if (this.state.username.length > 0 && this.state.username.length > 0) {
-            const {username, password} = this.state;
-            console.log(`username: ${username}  password:${password}`)
-            axios.get(`http://localhost:3000/login/${username}/${password}`)
+    componentDidMount = async () => {
+        console.log('componentDidMount called');
+        try {
+            const username = await AsyncStorage.getItem('@username');
+            console.log(`username: ${username}`)
+            if (username !== null) {
+                const password = await AsyncStorage.getItem('@password');
+                console.log(`password: ${password}`)
+                this.setState({
+                    username,
+                    password
+                })
+                this.onLogin(username, password);
+            }
+        } catch(error) {
+            console.log("Error while component mounting", error)
+        }
+    }
+
+    storeDataAsync = async () => {
+        try {
+            if (await AsyncStorage.getItem('@username') == null) {
+                await AsyncStorage.setItem('@username', `${this.state.username}`);
+                await AsyncStorage.setItem('@password', `${this.state.password}`);
+                console.log('successfully saved data');
+            }
+            console.log('user info already exists in database');
+        } catch(error) {
+            Alert.alert(
+                'Alert',
+                'Error saving data!',
+                [
+                    {text: 'Ok' , onPress:() => console.log('error saving data')}
+                ],
+                {cancelable: true}
+            );
+        }
+    }
+
+    onLogin = (user, pass) => {
+        if (user.length > 0 && pass.length > 0) {
+            // const {username, password} = this.state;
+            console.log(`username: ${user}  password:${pass}`)
+            axios.get(`http://${ipPort}/login/${user}/${pass}`)
             .then(response => {
-                console.log(response.status);
+                console.log(response);
                 if (response.status == 200) {
+                    this.setState({
+                        userID: response.data
+                    });
+                    this.storeDataAsync();
                     Alert.alert(
                         'Alert',
                         'Signed In!',
                         [
-                            {text: 'Ok' , onPress:() => this.onStackReset}
+                            {text: 'Ok' , onPress:() => this.onStackReset()}
                         ],
                         {cancelable: true}
-                    )
-                    // this.onStackReset();
+                    );
                 }
             }).catch(error => {
-                console.log('Error occured');
+                console.log('Error occurred');
                 console.log("Error Message ------------> ",error.message);
                 if (error.message === 'Network Error') {
                     Alert.alert(
@@ -64,7 +111,7 @@ export default class Login extends Component {
                             {text: 'Ok' , onPress: () => console.log('Invalid Credentials')}
                         ],
                         {cancelable: true}
-                    )
+                    );
                 }
                 else if (error.response.status == 401) {
                     Alert.alert(
@@ -74,7 +121,7 @@ export default class Login extends Component {
                             {text: 'Ok' , onPress: () => console.log('Invalid Credentials')}
                         ],
                         {cancelable: true}
-                    )
+                    );
                 } else {
                     Alert.alert(
                         'Alert',
@@ -83,10 +130,9 @@ export default class Login extends Component {
                             {text: 'Ok' , onPress: () => console.log('Invalid Credentials')}
                         ],
                         {cancelable: true}
-                    )
+                    );
                 }
-
-            })
+            });
         } else {
             Alert.alert(
                 'Alert',
@@ -116,10 +162,18 @@ export default class Login extends Component {
                 <Content contentContainerStyle={styles.container}>
                     <View style={styles.bodyContent}>
                         <Image style={{width: 150, height: 150}} source={require('../uploads/users.png')}/>
-                        <TextInput onChangeText={username => this.setState({username})} value={this.state.username} style={styles.inputFields} placeholder="Enter email"/>
-                        <TextInput onChangeText={password => this.setState({password})} value={this.state.password} secureTextEntry={true} style={styles.inputFields} placeholder="Enter password"/>
+                        <Form style={{borderColor: 'black', borderWidth: 0}}>
+                            <Item style={styles.inputFields}>
+                                {/* <Label>Username</Label> */}
+                                <Input onChangeText={username => this.setState({username})} value={this.state.username} placeholder='username' />
+                            </Item>
+                            <Item style={styles.inputFields} last>
+                                {/* <Label>Password</Label> */}
+                                <Input onChangeText={password => this.setState({password})} value={this.state.password} secureTextEntry={true} placeholder='password' />
+                            </Item>
+                        </Form>
                         <View style={styles.loginView}>
-                            <Button onPress={this.onLogin} title="Login"/>
+                            <Button onPress={() => this.onLogin(this.state.username, this.state.password)} title="Login"/>
                         </View>
                     </View>
                 </Content>
@@ -155,7 +209,7 @@ const styles = StyleSheet.create({
     bodyContent: {
         borderColor: 'red',
         borderWidth: 0,
-        justifyContent: 'center',
+        justifyContent: 'space-evenly',
         alignItems: 'center',
         flexDirection: 'column',
         width: '70%'

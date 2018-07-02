@@ -8,6 +8,16 @@ import {
 import {Container, Content, Header, Left, Icon, Button} from 'native-base';
 
 export default class Profile extends Component {
+    constructor(props) {
+        super(props);
+        const {username, password, userID} = this.props.navigation.state.params;
+        this.state = {
+            username: `${username}`,
+            password: `${password}`,
+            userID: `${userID}`
+        }
+        // console.log(this.state);
+    }
     render() {
         return(
             <Container>
@@ -22,7 +32,7 @@ export default class Profile extends Component {
                     </Left>
                 </Header>
                 <Content contentContainerStyle={styles.container}>
-                    <Text>Profile Screen</Text>
+                    <Text>Welcome {this.state.username.toUpperCase()}</Text>
                 </Content>
             </Container>
         );
