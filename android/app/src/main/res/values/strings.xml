@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">react_native_minor_api_app</string>
+    <string name="app_name">Minor App</string>
+    <string name="facebook_app_id">626254307727859</string>
 </resources>

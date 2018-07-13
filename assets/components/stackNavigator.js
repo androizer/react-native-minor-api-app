@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-// cretateStackNavigator always in '{}' else 'Object not a function' error.
+// createStackNavigator always in '{}' else 'Object not a function' error.
 import {createStackNavigator} from 'react-navigation';
 import UnsecuredDrawerNavigator from './unSecuredDrawerNavigator';
 import SecuredDrawerNavigator from './SecuredDrawerNavigator';

@@ -1,8 +1,12 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-import {StackActions, NavigationActions} from 'react-navigation';
-import {Form, Item, Input, Label} from 'native-base';
+import { StackActions, NavigationActions } from 'react-navigation';
+import { Form, Item, Input, Label, Toast } from 'native-base';
 import ipPort from '../components/ipConfig';
+import { Button as NBButton } from 'native-base';
+import { LoginManager, AccessToken, GraphRequest, GraphRequestManager } from 'react-native-fbsdk';
+import { GoogleSigninButton, GoogleSignin } from 'react-native-google-signin';
+import firebase from 'react-native-firebase';
 
 import {
     View,
@@ -12,7 +16,9 @@ import {
     TouchableOpacity,
     Image,
     Alert,
-    AsyncStorage
+    AsyncStorage,
+    Text,
+    ToastAndroid
 } from 'react-native';
 
 import {Header, Left, Icon, Container, Content} from 'native-base';
@@ -21,10 +27,16 @@ export default class Login extends Component {
 
     constructor(props) {
         super(props);
+        this.ref = firebase.firestore().collection('users');
+        this.unsubscribe = null;
+       
         this.state = {
-            username: '',
+            username: '', 
             password: '',
-            userID: ''
+            userID: '',
+            user: '',
+            posts: [],
+            loading: true
         };
     }
 
@@ -40,9 +52,9 @@ export default class Login extends Component {
         return this.props.navigation.dispatch(resetAction);
     }
 
-    componentDidMount = async () => {
-        console.log('componentDidMount called');
+    checkAsyncStorageInstance = async () => {
         try {
+            console.log('Checking Async Stoage for existing user');
             const username = await AsyncStorage.getItem('@username');
             console.log(`username: ${username}`)
             if (username !== null) {
@@ -51,12 +63,111 @@ export default class Login extends Component {
                 this.setState({
                     username,
                     password
-                })
+                });
                 this.onLogin(username, password);
+            } else {
+                console.log('username doesn\'t exist');
             }
         } catch(error) {
-            console.log("Error while component mounting", error)
+            console.log("Error while component mounting", error);
         }
+    }
+
+    componentDidMount = () => {
+        this.checkAsyncStorageInstance();
+        this.hasPermission();
+        this.addRandomPost();
+        this.unsubscribe = this.ref.onSnapshot(this.onCollectionUpdate)
+    }
+
+    componentWillMount() {
+        firebase.notifications().onNotificationDisplayed((notification) => {
+            console.log("Notification in onNotificationDisplayed", notification)
+            // Triggered when a particular notification has been displayed
+        });
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe();
+    }
+
+    addRandomPost = () => {
+        user = {
+            username: 'appu',
+            password: 'helloBoy',
+            email: 'akki@def.com'
+        }
+        this.ref.add(user);
+        console.log(user);
+    }
+
+    onCollectionUpdate = (querySnapshot) => {
+        const posts = [];
+        querySnapshot.forEach((doc) => {
+          const { username, password, email } = doc.data();
+          posts.push({
+            key: doc.id, // Document ID
+            doc, // DocumentSnapshot
+            username,
+            password,
+            email,
+          });
+        });
+        this.setState({
+          posts,
+          loading: false,
+       });
+       console.log(this.state.posts);
+       console.log("Length: ", this.state.posts.length); 
+    }
+
+    onTokenRefreshListener = () => {
+        console.log('On Refresh Token')
+        firebase.messaging().onTokenRefresh(fcmToken => {
+            console.log('refresh token block');
+            if (fcmToken) {
+                console.log("Refresh Device Registration Token: ", fcmToken)
+                ToastAndroid.show(`Device Registration Token: ${fcmToken}`, ToastAndroid.SHORT);
+            } else {
+                console.log('Token not found');
+                ToastAndroid.show('Token not found', ToastAndroid.LONG);
+            }
+        })
+    }
+
+    hasPermission () {
+        firebase.messaging().hasPermission()
+        .then(async enabled => {
+            if (enabled) {
+                console.log('User has permission');
+            // user has permissions
+            } else {
+                try {
+                    await firebase.messaging().requestPermission();
+                } catch(error) {
+                    console.log(error);
+                }
+            } 
+        });
+    }
+
+    androidChannelHousekeeping() {
+        const channel = new firebase.notifications.Android.Channel('akki7164', 'Test Channel 7164', firebase.notifications.Android.Importance.Max)
+        .setDescription('My apps test channel');
+
+        // Create the channel
+        firebase.notifications().android.createChannel(channel);
+
+        const notification = new firebase.notifications.Notification()
+        .setNotificationId('notificationId')
+        .setTitle('My notification title')
+        .setBody('My notification body');
+
+        notification
+        .android.setChannelId('testChannel123')
+        .android.setSmallIcon('ic_launcher');
+
+        firebase.notifications().displayNotification(notification);
     }
 
     storeDataAsync = async () => {
@@ -91,14 +202,8 @@ export default class Login extends Component {
                         userID: response.data
                     });
                     this.storeDataAsync();
-                    Alert.alert(
-                        'Alert',
-                        'Signed In!',
-                        [
-                            {text: 'Ok' , onPress:() => this.onStackReset()}
-                        ],
-                        {cancelable: true}
-                    );
+                    ToastAndroid.show(`Signed in as ${this.state.username}`, ToastAndroid.LONG);
+                    this.onStackReset()
                 }
             }).catch(error => {
                 console.log('Error occurred');
@@ -138,11 +243,102 @@ export default class Login extends Component {
                 'Alert',
                 'Invalid Credentials',
                 [
-                    {title: 'OK'}
+                    {text: 'OK'}
                 ],
                 {cancelable: true}
             )
         }
+    }
+
+    facebookLogin = () => {
+
+        ToastAndroid.show('Facebook login', ToastAndroid.SHORT);
+        LoginManager.logInWithReadPermissions(['public_profile', 'email'])
+        .then(result => {
+            if (result.isCancelled) {
+                ToastAndroid.show('Login Cancelled', ToastAndroid.SHORT)
+                console.log(result);
+            } else if(result.grantedPermissions.length > 0) {
+                AccessToken.getCurrentAccessToken()
+                .then(data => {
+                    console.log(`Data Access Token:: ${data.accessToken.toString()}`);
+                    let accessToken = data.accessToken;
+
+                    const responseCallBack = (error, result) => {
+                        if (error) {
+                            console.log("Error in graph callback: ", error);
+                        } else {
+                            console.log(`Graph Response:`, result);
+                        }
+                    }
+                    const infoRequest = new GraphRequest(
+                        '/me',
+                        {
+                            accessToken: accessToken,
+                            parameters: {
+                                fields: {
+                                    string: 'name, email, first_name, last_name, picture.type(large)'
+                                }
+                            }
+                        },
+                        responseCallBack
+                    );
+
+                    new GraphRequestManager().addRequest(infoRequest).start();
+                }).catch(error => {
+                    console.log(`Error: ${error}`);
+                })
+            } else {
+                console.log(result);
+            }
+        }).catch(error => {
+            ToastAndroid.show('Login fail with error: ' + error, ToastAndroid.SHORT);
+        })
+    }
+    signIn = async () => {
+        try {
+          const user = await GoogleSignin.signIn();
+          this.setState({ user });
+          console.log('user in signIn: ', user)
+        } catch (error) {
+          if (error.code === 'CANCELED') {
+            console.log('user cancelled the login flow');
+            ToastAndroid.show('Login Cancelled!', ToastAndroid.LONG)
+          } else {
+            console.log('some other error happened');
+          }
+        }
+      };
+
+    getCurrentUser = async () => {
+        try {
+          const user = await GoogleSignin.currentUserAsync();
+          this.setState({ user });
+          console.log('user in getCurrentUser:', user);
+          if (user == null) {
+            this.signIn();
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+    googleLogin = () => {
+        GoogleSignin.hasPlayServices({ autoResolve: true })
+        .then(() => {
+            // play services are available. can now configure library
+            ToastAndroid.show('Google Services found', ToastAndroid.LONG);
+            GoogleSignin.configure({
+                webClientId: '349348397159-2tq2ag6p3fug02r6p189l4mbmrbh3fpr.apps.googleusercontent.com', // client ID of type WEB for your server (needed to verify user ID and offline access)
+                offlineAccess: false
+              }).then(() => {
+                console.log('configure success');
+                this.getCurrentUser();
+              });
+        })
+        .catch(err => {
+            console.log('Play services error', err.code, err.message);
+        });
     }
     
     render() {
@@ -161,19 +357,34 @@ export default class Login extends Component {
                 {/* Content is same as View, but mandatory to use with Container */}
                 <Content contentContainerStyle={styles.container}>
                     <View style={styles.bodyContent}>
-                        <Image style={{width: 150, height: 150}} source={require('../uploads/users.png')}/>
-                        <Form style={{borderColor: 'black', borderWidth: 0}}>
+                        <Image style={{width: 150, height: 150, borderWidth: 10}} source={require('../uploads/users.png')}/>
+                        <Form style={{borderWidth: 10, borderColor: '#e9e9ef'}}>
                             <Item style={styles.inputFields}>
                                 {/* <Label>Username</Label> */}
                                 <Input onChangeText={username => this.setState({username})} value={this.state.username} placeholder='username' />
                             </Item>
-                            <Item style={styles.inputFields} last>
+                            <Item style={styles.inputFields}>
                                 {/* <Label>Password</Label> */}
                                 <Input onChangeText={password => this.setState({password})} value={this.state.password} secureTextEntry={true} placeholder='password' />
                             </Item>
                         </Form>
                         <View style={styles.loginView}>
-                            <Button onPress={() => this.onLogin(this.state.username, this.state.password)} title="Login"/>
+                            <Text style={{color: 'blue', alignSelf: 'center'}}>Forgot Password?</Text>
+                            <Button style={{}} onPress={() => this.onLogin(this.state.username, this.state.password)} title="Login"/>
+                        </View>
+                        <View style={{borderTopWidth: 10, borderTopColor: '#e9e9ef'}}>
+                            <NBButton iconLeft style={styles.facebookButton} onPress={this.facebookLogin}>
+                                <Icon type="MaterialCommunityIcons" name="facebook" style={{color: '#fff'}}/>
+                                <Text style={{color: '#fff', fontWeight: 'bold'}}>Log In using Facebook  </Text>
+                            </NBButton>
+                        </View>
+                        <View style={{borderTopWidth: 10, borderTopColor: '#e9e9ef'}}>
+                            <GoogleSigninButton
+                            style={{ width: 230, height: 48 }}
+                            size={GoogleSigninButton.Size.Wide}
+                            color={GoogleSigninButton.Color.Light}
+                            onPress={this.googleLogin}
+                            />
                         </View>
                     </View>
                 </Content>
@@ -187,31 +398,40 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,    
         justifyContent: 'center',
-        alignItems: 'center',
-    },
-    bgImage: {
-        height: '100%', 
-        width: '100%', 
-        flex: 1, 
-        justifyContent: 'center', 
         alignItems: 'center'
     },
     inputFields: {
         width: '100%'
     },
     loginView: {
-        borderColor: 'red',
-        borderWidth: 0,
-        width: '30%',
-        height: '20%',
-        alignSelf: 'flex-end',
+        borderWidth: 10,
+        borderColor: '#e9e9ef',
+        flexDirection: 'row',
+        width: '95%',
+        justifyContent: 'space-between',
+    },
+    facebookButton: {
+        backgroundColor: '#385899', 
+        borderWidth: 1,
+        borderRadius: 4,
+        borderColor: '#ddd',
+        borderBottomWidth: 0,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.8,
+        shadowRadius: 2,
+        marginLeft: 5,
+        marginRight: 5,
+        marginTop: 10,
+        elevation: 5
     },
     bodyContent: {
-        borderColor: 'red',
+        borderColor: 'blue',
         borderWidth: 0,
-        justifyContent: 'space-evenly',
+        justifyContent: 'space-around',
         alignItems: 'center',
+        alignContent: 'center',
         flexDirection: 'column',
-        width: '70%'
+        width: '80%'
     }
 })

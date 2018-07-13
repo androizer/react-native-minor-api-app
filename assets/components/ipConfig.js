@@ -1,2 +1,2 @@
-const ipPort = '192.168.1.15:3000';
+const ipPort = '192.168.43.52:3000';
 export default ipPort;

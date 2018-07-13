@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "349348397159",
+    "firebase_url": "https://minor-app-1994.firebaseio.com",
+    "project_id": "minor-app-1994",
+    "storage_bucket": "minor-app-1994.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:349348397159:android:6429a054d7c7ab58",
+        "android_client_info": {
+          "package_name": "com.react_native_minor_api_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "349348397159-2tq2ag6p3fug02r6p189l4mbmrbh3fpr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6mytrYC0p9P75O_ZGntD_ycg61kvYkWU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
