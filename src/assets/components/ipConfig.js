@@ -1,2 +1,2 @@
-const ipPort = '192.168.43.52:3000';
+const ipPort = 'minor-app.herokuapp.com';
 export default ipPort;
