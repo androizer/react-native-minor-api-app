@@ -15,11 +15,10 @@ import {
 import firebase from 'react-native-firebase';
 
 
-import StackNavigator from './assets/components/stackNavigator';
+import StackNavigator from './src/assets/components/stackNavigator';
 
 export default class App extends Component {
 
-  
   componentWillMount() {
     console.log('componentDidMount called');
     this.getDeviceRegistrationToken();
