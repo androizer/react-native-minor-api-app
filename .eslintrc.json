@@ -1,0 +1,22 @@
+{
+  "env": {
+    "node": true,
+    "browser": true,
+    "es6": true,
+    "jest": true
+  },
+  "parser": "babel-eslint",
+  "extends": "airbnb",
+  "rules": {
+    "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
+    "react/destructuring-assignment": "off",
+    "no-underscore-dangle": 0,
+    "no-console": "off",
+    "comma-dangle": "off",
+    "no-unused-vars": "warn",
+    "react/no-unused-state": "warn",
+    "camelcase": "warn",
+    "global-require": "off",
+    "no-use-before-define": ["warn", { "variables": false }]
+  }
+}

@@ -15,7 +15,7 @@ export default class Profile extends Component {
             username: `${username}`,
             password: `${password}`,
             userID: `${userID}`
-        }
+        };
         // console.log(this.state);
     }
     render() {
