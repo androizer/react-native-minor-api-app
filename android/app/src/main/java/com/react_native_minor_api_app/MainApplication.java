@@ -41,8 +41,8 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-            new MapsPackage(),
-            new RNDeviceInfo(),
+          new MapsPackage(),
+          new RNDeviceInfo(),
           new VectorIconsPackage(),
           new RNGoogleSigninPackage(),
           new RNFirebasePackage(),
