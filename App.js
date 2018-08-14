@@ -56,7 +56,6 @@ export default class App extends Component {
         if (fcmToken) {
           console.log('Device Registration Token: ', fcmToken);
           // ToastAndroid.show(`Device Registration Token: ${fcmToken}`, ToastAndroid.SHORT);
-          console.log(`Device Registration Token: ${fcmToken}`);
         } else {
           console.log('Token not found');
           ToastAndroid.show('Token not found', ToastAndroid.LONG);
