@@ -42,10 +42,12 @@ class Backend {
 
   // retrieve the locations from the Backend
   loadNewLocations(callback) {
+    console.log('<------ LoadNewLocations ------>');
     this.locationRef = firebase.database().ref('locations');
     this.locationRef.off();
     const onReceive = (data) => {
       const location = data.val();
+      console.log(location);
       callback({
         _id: data.key,
         coords: {
@@ -75,6 +77,8 @@ class Backend {
   // send the location to the Backend.
   sendLocation(location, uniqueID) {
     const hash = cryptoJS.enc.Base64.stringify(cryptoJS.MD5(uniqueID.toString()));
+    console.log('<---------- Hash:  ', hash, ' ---------->');
+    console.log('location to be sent ------> ', location);
     this.locationRef.child(hash).set({
       coords: {
         latitude: location.latitude,
