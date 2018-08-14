@@ -6,19 +6,13 @@
 
 import React, { Component } from 'react';
 import {
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-  ToastAndroid
+ Platform, StyleSheet, Text, View, ToastAndroid 
 } from 'react-native';
 import firebase from 'react-native-firebase';
-
 
 import StackNavigator from './src/assets/components/stackNavigator';
 
 export default class App extends Component {
-
   componentWillMount() {
     console.log('componentDidMount called');
     this.getDeviceRegistrationToken();
@@ -30,47 +24,48 @@ export default class App extends Component {
 
     firebase.notifications().android.createChannel(channel);
 
-    firebase.notifications().onNotification(notification => {
-      console.log("onNotification Notification: ", notification);
+    firebase.notifications().onNotification((notification) => {
+      console.log('onNotification Notification: ', notification);
       const localNotification = new firebase.notifications.Notification({
         sound: 'default',
         show_in_foreground: true
       })
-      .setNotificationId(notification.notificationId)
-      .setTitle(notification.title)
-      .setSubtitle(notification.subtitle)
-      .setBody(notification.body)
-      .setData(notification.data)
-      .android.setChannelId('qaz741wsx852edc963')
-      .android.setPriority(firebase.notifications.Android.Priority.Max);
+        .setNotificationId(notification.notificationId)
+        .setTitle(notification.title)
+        .setSubtitle(notification.subtitle)
+        .setBody(notification.body)
+        .setData(notification.data)
+        .android.setChannelId('qaz741wsx852edc963')
+        .android.setPriority(firebase.notifications.Android.Priority.Max);
 
-      firebase.notifications()
-      .displayNotification(localNotification)
-      .catch(error => {
-        console.error(error);
-      });
+      firebase
+        .notifications()
+        .displayNotification(localNotification)
+        .catch((error) => {
+          console.error(error);
+        });
     });
   }
 
-
-  getDeviceRegistrationToken () {
+  getDeviceRegistrationToken = () => {
     console.log('On Device Registration Token');
-    firebase.messaging().getToken()
-    .then(fcmToken => {
+    firebase
+      .messaging()
+      .getToken()
+      .then((fcmToken) => {
         if (fcmToken) {
-            console.log("Device Registration Token: ", fcmToken)
-            ToastAndroid.show(`Device Registration Token: ${fcmToken}`, ToastAndroid.SHORT);
+          console.log('Device Registration Token: ', fcmToken);
+          // ToastAndroid.show(`Device Registration Token: ${fcmToken}`, ToastAndroid.SHORT);
+          console.log(`Device Registration Token: ${fcmToken}`);
         } else {
-            console.log('Token not found');
-            ToastAndroid.show('Token not found', ToastAndroid.LONG);
-        } 
-    });
-  }
+          console.log('Token not found');
+          ToastAndroid.show('Token not found', ToastAndroid.LONG);
+        }
+      });
+  };
 
   render() {
-    return (
-      <StackNavigator/>
-    );
+    return <StackNavigator />;
   }
 }
 
@@ -79,16 +74,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+    backgroundColor: '#F5FCFF'
   },
   welcome: {
     fontSize: 20,
     textAlign: 'center',
-    margin: 10,
+    margin: 10
   },
   instructions: {
     textAlign: 'center',
     color: '#333333',
-    marginBottom: 5,
-  },
+    marginBottom: 5
+  }
 });

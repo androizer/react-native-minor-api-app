@@ -568,7 +568,7 @@ export default class MapViewEngine extends Component {
             <TouchableOpacity style={{ alignSelf: 'center' }}>
               <Image
                 style={{ height: 20, width: 20, alignSelf: 'center' }}
-                source={require('../uploads/microphone.png)}
+                source={require('../uploads/microphone.png')}
               />
             </TouchableOpacity>
           </View>

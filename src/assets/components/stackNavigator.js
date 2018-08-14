@@ -1,22 +1,22 @@
 import React, { Component } from 'react';
 // createStackNavigator always in '{}' else 'Object not a function' error.
-import {createStackNavigator} from 'react-navigation';
+import { createStackNavigator } from 'react-navigation';
 import UnsecuredDrawerNavigator from './unSecuredDrawerNavigator';
 import SecuredDrawerNavigator from './SecuredDrawerNavigator';
 
 const stackNavigator = createStackNavigator(
-    {
-        Login: {
-            screen: UnsecuredDrawerNavigator
-        },
-        UserProfile: {
-            screen: SecuredDrawerNavigator
-        }
+  {
+    Login: {
+      screen: UnsecuredDrawerNavigator
     },
-    {
-        initialRouteName: 'Login',
-        headerMode: 'none'
+    UserProfile: {
+      screen: SecuredDrawerNavigator
     }
+  },
+  {
+    initialRouteName: 'Login',
+    headerMode: 'none'
+  }
 );
 
 export default stackNavigator;
