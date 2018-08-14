@@ -22,7 +22,8 @@ import {
   BackHandler,
   FlatList,
   Alert,
-  TouchableNativeFeedback
+  TouchableNativeFeedback,
+  DeviceEventEmitter
 } from 'react-native';
 
 import { Fab, Icon } from 'native-base';
@@ -83,11 +84,11 @@ export default class MapViewEngine extends Component {
       searchText: '',
       fListRefresh: false
     };
+    this.backPressSubscriptions = new Set();
     console.ignoredYellowBox = ['Setting a timer'];
   }
 
   componentWillMount() {
-    console.log('Props from login screen: ', this.props);
     this.setState({
       initialRegion: {
         latitude: 15,
@@ -99,11 +100,11 @@ export default class MapViewEngine extends Component {
     this.findMe('CWM');
     console.log('<------------ Calling Firebase Backend ------------>');
     this.getDeviceInfo();
-    // this.loadUpdatedLocations();
+    this.handleHardwareBack();
   }
 
   componentDidMount() {
-    BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+    // BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
     setTimeout(() => {
       this.mapView.animateToRegion(this.state.regionAnimated, 1000);
     }, 500);
@@ -130,7 +131,9 @@ export default class MapViewEngine extends Component {
 
   componentWillUnmount() {
     navigator.geolocation.clearWatch(this.watchId);
-    BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+    // BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+    DeviceEventEmitter.removeAllListeners('hardwareBackPress');
+    this.backPressSubscriptions.clear();
   }
 
   getGeoCode = (place_id, description, main_text) => {
@@ -284,6 +287,28 @@ export default class MapViewEngine extends Component {
     console.log('Device Unique ID: ', this.uniqueID);
     this.loadNewLocations();
   };
+
+  handleHardwareBack = () => {
+    // https://github.com/facebook/react-native/issues/3223#issuecomment-355064410
+    DeviceEventEmitter.removeAllListeners('hardwareBackPress');
+    DeviceEventEmitter.addListener('hardwareBackPress', () => {
+      let invokeDefault = true;
+      const subscriptions = [];
+
+      this.backPressSubscriptions.forEach(sub => subscriptions.push(sub));
+
+      for (let i = 0; i < subscriptions.reverse().length; i += 1) {
+        if (subscriptions[i]()) {
+          invokeDefault = false;
+          break;
+        }
+      }
+      if (invokeDefault) {
+        BackHandler.exitApp();
+      }
+    });
+    this.backPressSubscriptions.add(this.handleBackPress);
+  }
 
   findMe = (source = 'fab') => {
     navigator.geolocation.getCurrentPosition(
