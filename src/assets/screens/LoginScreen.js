@@ -20,7 +20,9 @@ import {
   Alert,
   AsyncStorage,
   Text,
-  ToastAndroid
+  ToastAndroid,
+  ActivityIndicator,
+  Modal
 } from 'react-native';
 
 import ipPort from '../components/ipConfig';
@@ -30,14 +32,13 @@ export default class Login extends Component {
     super(props);
     this.ref = firebase.firestore().collection('users');
     this.unsubscribe = null;
-
     this.state = {
       username: '',
       password: '',
       userID: '',
       user: '',
       posts: [],
-      loading: true
+      modalVisible: false
     };
   }
 
@@ -51,7 +52,7 @@ export default class Login extends Component {
   componentDidMount = () => {
     this.checkAsyncStorageInstance();
     this.hasPermission();
-    this.addRandomPost();
+    // this.addRandomPost();
     this.unsubscribe = this.ref.onSnapshot(this.onCollectionUpdate);
   }
 
@@ -61,10 +62,11 @@ export default class Login extends Component {
 
     onStackReset = () => {
       console.log('stack reset function');
+      const { username, password, userID } = this.state;
       const resetAction = StackActions.reset({
         index: 0,
         actions: [
-          NavigationActions.navigate({ routeName: 'UserProfile', params: this.state })
+          NavigationActions.navigate({ routeName: 'UserProfile', params: { username, password, userID } })
         ],
         key: null
       });
@@ -99,7 +101,6 @@ export default class Login extends Component {
       });
       this.setState({
         posts,
-        loading: false,
       });
       console.log(this.state.posts);
       console.log('Length: ', this.state.posts.length);
@@ -107,21 +108,24 @@ export default class Login extends Component {
 
     onLogin = (user, pass) => {
       if (user.length > 0 && pass.length > 0) {
-        // const {username, password} = this.state;
+        this.setState(() => ({
+          modalVisible: true
+        }));
         console.log(`username: ${user}  password:${pass}`);
-        axios.get(`http://${ipPort}/login/${user}/${pass}`)
+        axios.get(`https://${ipPort}/login/${user}/${pass}`)
           .then((response) => {
-            console.log(response);
+            console.log('Login Response -----> ', response);
             if (response.status == 200) {
               this.setState({
-                userID: response.data
+                userID: response.data,
+                modalVisible: false
               });
               this.storeDataAsync();
               ToastAndroid.show(`Signed in as ${this.state.username}`, ToastAndroid.LONG);
               this.onStackReset();
             }
           }).catch((error) => {
-            console.log('Error occurred');
+            console.log('Login Error');
             console.log('Error Message ------------> ', error.message);
             if (error.message === 'Network Error') {
               Alert.alert(
@@ -179,7 +183,7 @@ export default class Login extends Component {
 
     checkAsyncStorageInstance = async () => {
       try {
-        console.log('Checking Async Stoage for existing user');
+        console.log('Checking Async Storage for existing user');
         const username = await AsyncStorage.getItem('@username');
         console.log(`username: ${username}`);
         if (username !== null) {
@@ -358,6 +362,28 @@ export default class Login extends Component {
           </Header>
           {/* Content is same as View, but mandatory to use with Container */}
           <Content contentContainerStyle={styles.container}>
+            <Modal
+              animationType="slide"
+              transparent
+              visible={this.state.modalVisible}
+              onRequestClose={() => {
+              // alert('Modal has been closed.');
+                this.setState({
+                  modalVisible: false
+                });
+              }}
+            >
+              <View style={{ backgroundColor: 'transparent', flex: 1, justifyContent: 'center' }}>
+                <View
+                  style={styles.modalView}
+                >
+                  <ActivityIndicator color="blue" size={50} animating />
+                  <Text style={{ alignSelf: 'center', fontSize: 16 }}>
+                  Fetching user details...
+                  </Text>
+                </View>
+              </View>
+            </Modal>
             <View style={styles.bodyContent}>
               <Image style={{ width: 150, height: 150, borderWidth: 10 }} source={require('../uploads/users.png')} />
               <Form style={{ borderWidth: 10, borderColor: '#e9e9ef' }}>
@@ -381,6 +407,7 @@ export default class Login extends Component {
                   <Icon type="MaterialCommunityIcons" name="facebook" style={{ color: '#fff' }} />
                   <Text style={{ color: '#fff', fontWeight: 'bold' }}>
                     Log In using Facebook
+                    {'  '}
                   </Text>
                 </NBButton>
               </View>
@@ -429,7 +456,10 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     marginRight: 5,
     marginTop: 10,
-    elevation: 5
+    elevation: 5,
+    width: 230,
+    flexDirection: 'row',
+    justifyContent: 'space-around'
   },
   bodyContent: {
     borderColor: 'blue',
@@ -439,5 +469,25 @@ const styles = StyleSheet.create({
     alignContent: 'center',
     flexDirection: 'column',
     width: '80%'
+  },
+  modalView: {
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignContent: 'center',
+    width: '70%',
+    height: '12%',
+    marginLeft: '15%',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderBottomWidth: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    marginRight: 5,
+    marginTop: 10,
+    elevation: 5,
   }
 });
