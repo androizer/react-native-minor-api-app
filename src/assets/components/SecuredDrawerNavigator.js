@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import ProfileScreen from '../screens/ProfileScreen';
 import DashboardScreen from '../screens/DashboardScreen';
+import MapViewScreen from '../screens/MapView';
 
 const DrawerCustomContentComponent = props => (
   <Container>
@@ -31,7 +32,7 @@ const DrawerCustomContentComponent = props => (
       <Button iconLeft transparent onPress={() => onStackReset(props)}>
         <Icon type="SimpleLineIcons" name="logout" style={{ color: 'black' }} />
         <Text style={{ fontWeight: 'bold', color: 'black', paddingLeft: 20 }}>
-logout
+          logout
         </Text>
       </Button>
     </View>
@@ -40,11 +41,11 @@ logout
 
 const SecuredDrawerNavigator = createDrawerNavigator(
   {
-    Profile: {
-      screen: ProfileScreen,
+    MapView: {
+      screen: MapViewScreen,
       navigationOptions: {
         drawerIcon: (
-          <Icon type="MaterialCommunityIcons" name="face-profile" style={{ fontSize: 26 }} />
+          <Icon type="MaterialCommunityIcons" name="google-maps" style={{ fontSize: 26 }} />
         )
       }
     },
@@ -58,7 +59,7 @@ const SecuredDrawerNavigator = createDrawerNavigator(
     }
   },
   {
-    initialRouteName: 'Profile',
+    initialRouteName: 'MapView',
     contentComponent: DrawerCustomContentComponent,
     drawerOpenRoute: 'DrawerOpen',
     drawerCloseRoute: 'DrawerClose',
