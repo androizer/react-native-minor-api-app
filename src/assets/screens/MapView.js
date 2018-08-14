@@ -30,7 +30,7 @@ import { Fab, Icon } from 'native-base';
 import MapView, { AnimatedRegion } from 'react-native-maps';
 import Polyline from '@mapbox/polyline';
 import DeviceInfo from 'react-native-device-info';
-import AutoCompleteFList from './src/components/AutoCompleteFList';
+import AutoCompleteFList from '../components/AutoCompleteFList';
 import Backend from '../components/Backend';
 
 const { width, height } = Dimensions.get('window');
@@ -87,6 +87,7 @@ export default class MapViewEngine extends Component {
   }
 
   componentWillMount() {
+    console.log('Props from login screen: ', this.props);
     this.setState({
       initialRegion: {
         latitude: 15,
@@ -466,27 +467,7 @@ export default class MapViewEngine extends Component {
               }}
               title={this.state.searchedPlaceMarker.title}
               description={this.state.searchedPlaceMarker.description}
-            >
-              <MapView.Callout>
-                <View style={styles.callout}>
-                  <Button
-                    title="Click Me!"
-                    onPress={() => {
-                      Alert.alert(
-                        'Alert',
-                        'Button Works',
-                        [
-                          { text: 'OK', style: 'cancel' }
-                        ],
-                        {
-                          cancelable: true
-                        }
-                      );
-                    }}
-                  />
-                </View>
-              </MapView.Callout>
-            </MapView.Marker>
+            />
             ) : null}
           {this.state.usersLocations.length > 0
             ? this.state.usersLocations.map(location => (
@@ -542,7 +523,10 @@ export default class MapViewEngine extends Component {
               marginHorizontal: '1%'
             }}
           >
-            <TouchableOpacity style={{ alignSelf: 'center' }}>
+            <TouchableOpacity
+              style={{ alignSelf: 'center' }}
+              onPress={() => this.props.navigation.toggleDrawer()}
+            >
               <Image
                 style={{ height: 20, width: 20, alignSelf: 'center' }}
                 source={require('../uploads/menu.png')}
