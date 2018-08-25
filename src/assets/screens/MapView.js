@@ -98,13 +98,11 @@ export default class MapViewEngine extends Component {
       }
     });
     this.findMe('CWM');
-    console.log('<------------ Calling Firebase Backend ------------>');
     this.getDeviceInfo();
     this.handleHardwareBack();
   }
 
   componentDidMount() {
-    // BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
     setTimeout(() => {
       this.mapView.animateToRegion(this.state.regionAnimated, 1000);
     }, 500);
@@ -131,9 +129,9 @@ export default class MapViewEngine extends Component {
 
   componentWillUnmount() {
     navigator.geolocation.clearWatch(this.watchId);
-    // BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
     DeviceEventEmitter.removeAllListeners('hardwareBackPress');
     this.backPressSubscriptions.clear();
+    Backend.loadOffLocation(this.uniqueID);
   }
 
   getGeoCode = (place_id, description, main_text) => {
@@ -425,6 +423,7 @@ export default class MapViewEngine extends Component {
             text: 'Yes',
             onPress: () => {
               console.log('User pressed yes');
+              Backend.loadOffLocation(this.uniqueID);
               BackHandler.exitApp();
             }
           }
@@ -503,26 +502,17 @@ export default class MapViewEngine extends Component {
                   longitude: location.coords.longitude
                 }}
                 title={location.uid}
-                pinColor="#ff2e7d32"
+                pinColor="#00b200"
               >
                 <MapView.Callout
-                  onPress={() => console.log('Callout view pressed via callout')}
+                  onPress={() => {
+                    console.log('Callout View Pressed Via Callout');
+                    this.props.navigation.navigate('Chat', { uid: location.uid, uniqueID: this.uniqueID  });
+                  }}
                 >
                   <View style={styles.callout}>
                     <Button
                       title="Click Me!"
-                      onPress={() => {
-                        Alert.alert(
-                          'Alert',
-                          'Button Works',
-                          [
-                            { text: 'OK', style: 'cancel' }
-                          ],
-                          {
-                            cancelable: true
-                          }
-                        );
-                      }}
                     />
                   </View>
                 </MapView.Callout>

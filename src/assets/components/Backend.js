@@ -1,5 +1,5 @@
-import firebase from 'firebase';
 import cryptoJS from 'crypto-js';
+import firebase from './FirebaseConfig';
 
 class Backend {
   uid = '';
@@ -10,13 +10,7 @@ class Backend {
 
   // initialize firebase Backend
   constructor() {
-    firebase.initializeApp({
-      apiKey: 'AIzaSyB0s1cBycIsTlncHCrYabK6245eQRceqCg',
-      authDomain: 'chatapp-7194.firebaseapp.com',
-      databaseURL: 'https://chatapp-7194.firebaseio.com',
-      storageBucket: 'chatapp-7194.appspot.com',
-    });
-
+    console.log('<------------ Calling Firebase Backend ------------>');
     firebase.auth().onAuthStateChanged((user) => {
       if (user) {
         console.log('User', user.uid);
@@ -76,9 +70,10 @@ class Backend {
 
   // send the location to the Backend.
   sendLocation(location, uniqueID) {
-    const hash = cryptoJS.enc.Base64.stringify(cryptoJS.MD5(uniqueID.toString()));
+    console.log('UniqueID before hashing: ------> ', uniqueID);
+    const hash = this.generateHash(uniqueID.toString());
     console.log('<---------- Hash:  ', hash, ' ---------->');
-    console.log('location to be sent ------> ', location);
+    // console.log('location to be sent ------> ', location);
     this.locationRef.child(hash).set({
       coords: {
         latitude: location.latitude,
@@ -97,8 +92,9 @@ class Backend {
     });
   }
 
-  loadOffLocation(key) {
-    this.locationRef.child(`${key}`).update({ status: 'inactive' });
+  loadOffLocation(uniqueID) {
+    const hash = this.generateHash(uniqueID);
+    this.locationRef.child(hash).update({ status: 'inactive' });
   }
 
   // send the messages to the Backend.
@@ -129,6 +125,8 @@ class Backend {
       this.messageRef.off();
     }
   }
+
+  generateHash = key => cryptoJS.enc.Base64.stringify(cryptoJS.MD5(key.toString()))
 }
 
 export default new Backend();

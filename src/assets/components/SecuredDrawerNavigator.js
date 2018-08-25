@@ -8,9 +8,10 @@ import {
 import {
   Image, StyleSheet, View, AsyncStorage
 } from 'react-native';
-import ProfileScreen from '../screens/ProfileScreen';
+// import ProfileScreen from '../screens/ProfileScreen';
 import DashboardScreen from '../screens/DashboardScreen';
-import MapViewScreen from '../screens/MapView';
+// import MapViewScreen from '../screens/MapView';
+import SecuredStackNavigator from './SecuredStackNavigator';
 
 const DrawerCustomContentComponent = props => (
   <Container>
@@ -42,7 +43,7 @@ const DrawerCustomContentComponent = props => (
 const SecuredDrawerNavigator = createDrawerNavigator(
   {
     MapView: {
-      screen: MapViewScreen,
+      screen: SecuredStackNavigator,
       navigationOptions: {
         drawerIcon: (
           <Icon type="MaterialCommunityIcons" name="google-maps" style={{ fontSize: 26 }} />
