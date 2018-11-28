@@ -14,9 +14,9 @@ export default class Profile extends Component {
     super(props);
     const { username, password, userID } = this.props.navigation.state.params;
     this.state = {
-      username: `${username}`,
-      password: `${password}`,
-      userID: `${userID}`
+      username,
+      password,
+      userID
     };
     // console.log(this.state);
   }
