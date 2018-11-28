@@ -26,6 +26,7 @@ import {
 } from 'react-native';
 
 import ipPort from '../components/ipConfig';
+import sharedResources from '../components/SharedResources';
 
 export default class Login extends Component {
   constructor(props) {
@@ -66,7 +67,12 @@ export default class Login extends Component {
       const resetAction = StackActions.reset({
         index: 0,
         actions: [
-          NavigationActions.navigate({ routeName: 'UserProfile', params: { username, password, userID } })
+          NavigationActions.navigate(
+            {
+              routeName: 'UserProfile',
+              params: { username, password, userID }
+            }
+          )
         ],
         key: null
       });
@@ -121,7 +127,8 @@ export default class Login extends Component {
                 modalVisible: false
               });
               this.storeDataAsync();
-              ToastAndroid.show(`Signed in as ${this.state.username}`, ToastAndroid.LONG);
+              ToastAndroid.show(`Signed in as ${this.state.username}`, ToastAndroid.SHORT);
+              sharedResources.setUsername(this.state.username);
               this.onStackReset();
             }
           }).catch((error) => {

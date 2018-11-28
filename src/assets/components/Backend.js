@@ -48,7 +48,8 @@ class Backend {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         },
-        uid: location.uid
+        uid: location.uid,
+        user: location.user
       });
     };
     this.locationRef.limitToLast(20).on('child_added', onReceive);
@@ -69,10 +70,11 @@ class Backend {
   }
 
   // send the location to the Backend.
-  sendLocation(location, uniqueID) {
-    console.log('UniqueID before hashing: ------> ', uniqueID);
+  sendLocation(location, uniqueID, userName) {
+    // console.log('UniqueID before hashing: ------> ', uniqueID);
     const hash = this.generateHash(uniqueID.toString());
-    console.log('<---------- Hash:  ', hash, ' ---------->');
+    userName = userName.charAt(0).toUpperCase() + userName.substr(1);
+    // console.log('<---------- Hash:  ', hash, ' ---------->');
     // console.log('location to be sent ------> ', location);
     this.locationRef.child(hash).set({
       coords: {
@@ -80,7 +82,8 @@ class Backend {
         longitude: location.longitude,
       },
       status: 'active',
-      uid: uniqueID
+      uid: uniqueID,
+      user: userName
     });
   }
 
@@ -95,25 +98,7 @@ class Backend {
   loadOffLocation(uniqueID) {
     const hash = this.generateHash(uniqueID);
     this.locationRef.child(hash).update({ status: 'inactive' });
-  }
-
-  // send the messages to the Backend.
-  loadNewMessages(callback) {
-    this.messageRef = firebase.database().ref('chats');
-    this.messageRef.off();
-    const onReceive = (data) => {
-      const message = data.val();
-      callback({
-        _id: data.key,
-        text: message.text,
-        createdAt: new Date(message.createdAt),
-        user: {
-          _id: message.user._id,
-          name: message.user.name
-        }
-      });
-    };
-    this.messageRef.limitToLast(20).on('child_added', onReceive);
+    this.closeTracking();
   }
 
   // close the connection to the Backend

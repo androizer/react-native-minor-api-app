@@ -11,7 +11,16 @@ const securedStackNavigator = createStackNavigator(
         header: null
       }
     },
-    Chat: ChatView,
+    Chat: {
+      screen: ChatView,
+      navigationOptions: ({ navigation }) => ({
+        headerTitle: `${navigation.state.params.username}`,
+        headerTitleStyle: {
+          textAlign: 'center',
+          flexGrow: 1
+        }
+      })
+    }
   },
   {
     initialRouteName: 'Home',

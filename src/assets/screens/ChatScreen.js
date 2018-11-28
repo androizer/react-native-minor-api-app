@@ -12,8 +12,8 @@ export default class ChatScreen extends Component {
     super(props);
     const { params } = this.props.navigation.state;
     this.user = params.uid;
-    this.myUniqueID = params.uniqueID;
-    Backend.setMessageRef(this.user, this.myUniqueID);
+    this.uniqueID = params.uniqueID;
+    Backend.setMessageRef(this.user, this.uniqueID);
     this.state = {
       messages: []
     };
@@ -54,7 +54,7 @@ export default class ChatScreen extends Component {
         }}
         user={{
           _id: Backend.getUid(),
-          name: this.user
+          name: this.uniqueID
         }}
       />
     );

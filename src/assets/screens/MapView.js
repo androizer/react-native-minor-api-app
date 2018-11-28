@@ -33,6 +33,7 @@ import Polyline from '@mapbox/polyline';
 import DeviceInfo from 'react-native-device-info';
 import AutoCompleteFList from '../components/AutoCompleteFList';
 import Backend from '../components/Backend';
+import sharedResources from '../components/SharedResources';
 
 const { width, height } = Dimensions.get('window');
 const ASPECT_RATIO = width / height;
@@ -43,6 +44,7 @@ export default class MapViewEngine extends Component {
   constructor(props) {
     super(props);
     this.uniqueID = null;
+    this.username = sharedResources.getUsername();
     this.state = {
       region: {
         latitude: null,
@@ -99,6 +101,7 @@ export default class MapViewEngine extends Component {
     });
     this.findMe('CWM');
     this.getDeviceInfo();
+    this.loadNewLocations();
     this.handleHardwareBack();
   }
 
@@ -109,7 +112,7 @@ export default class MapViewEngine extends Component {
     // add location to the database.
     const intervalId = setInterval(() => {
       if (Backend.getUid().toString() !== '') {
-        Backend.sendLocation(this.state.regionAnimated, this.uniqueID);
+        Backend.sendLocation(this.state.regionAnimated, this.uniqueID, this.username);
         clearInterval(intervalId);
       }
     }, 1000);
@@ -283,7 +286,6 @@ export default class MapViewEngine extends Component {
   getDeviceInfo = () => {
     this.uniqueID = DeviceInfo.getUniqueID();
     console.log('Device Unique ID: ', this.uniqueID);
-    this.loadNewLocations();
   };
 
   handleHardwareBack = () => {
@@ -506,14 +508,16 @@ export default class MapViewEngine extends Component {
               >
                 <MapView.Callout
                   onPress={() => {
-                    console.log('Callout View Pressed Via Callout');
-                    this.props.navigation.navigate('Chat', { uid: location.uid, uniqueID: this.uniqueID  });
+                    this.props.navigation.navigate('Chat', { uid: location.uid, uniqueID: this.uniqueID, username: location.user });
                   }}
                 >
                   <View style={styles.callout}>
-                    <Button
-                      title="Click Me!"
-                    />
+                    <Text style={{ fontWeight: 'bold', textAlign: 'center', fontSize: 16 }}>
+                      {location.user}
+                    </Text>
+                    <Text>
+                      {`latlng: ${location.coords.latitude}, ${location.coords.longitude}`}
+                    </Text>
                   </View>
                 </MapView.Callout>
               </MapView.Marker>
